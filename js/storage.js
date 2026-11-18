@@ -1,7 +1,7 @@
 /**
  * COLLEGE EVENT MANAGEMENT SYSTEM (CEMS)
  * storage.js - Centralized LocalStorage Management Layer
- * Handles initialization, CRUD operations, and data validation.
+ * Handles initialization, CRUD operations, date/time parsing, and validation.
  */
 
 // Storage Keys
@@ -125,17 +125,135 @@ const SAMPLE_REGISTRATIONS = [
   }
 ];
 
+// ==========================================================================
+// DATE & TIME HANDLING UTILITIES
+// ==========================================================================
+
 /**
- * Initialize storage with sample data if keys do not already exist.
+ * Safely parse date (YYYY-MM-DD) and time (12-hour AM/PM or 24-hour) into a local Date object.
+ * Avoids browser timezone parsing inconsistencies.
+ * 
+ * @param {string} dateStr - e.g. "2026-11-28"
+ * @param {string} [timeStr] - e.g. "09:00 AM", "5:30 PM", "14:30"
+ * @returns {Date|null}
+ */
+function parseEventDateTime(dateStr, timeStr) {
+  if (!dateStr || typeof dateStr !== 'string') return null;
+
+  const dateParts = dateStr.trim().split('-');
+  if (dateParts.length !== 3) return null;
+
+  const year = parseInt(dateParts[0], 10);
+  const month = parseInt(dateParts[1], 10) - 1; // 0-indexed month
+  const day = parseInt(dateParts[2], 10);
+
+  if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+
+  let hours = 0;
+  let minutes = 0;
+
+  if (timeStr && typeof timeStr === 'string') {
+    const cleanTime = timeStr.trim();
+    // Match 12-hour (e.g. 09:30 AM, 9:30am, 5 PM) or 24-hour (e.g. 14:30, 09:00)
+    const ampmMatch = cleanTime.match(/^(\d{1,2})(?::(\d{1,2}))?\s*(AM|PM)?$/i);
+
+    if (ampmMatch) {
+      let h = parseInt(ampmMatch[1], 10);
+      let m = ampmMatch[2] ? parseInt(ampmMatch[2], 10) : 0;
+      const meridiem = ampmMatch[3] ? ampmMatch[3].toUpperCase() : null;
+
+      if (!isNaN(h) && !isNaN(m)) {
+        if (meridiem === 'PM' && h < 12) {
+          h += 12;
+        } else if (meridiem === 'AM' && h === 12) {
+          h = 0;
+        }
+        hours = h;
+        minutes = m;
+      }
+    }
+  }
+
+  // Construct local date without timezone skew
+  return new Date(year, month, day, hours, minutes, 0, 0);
+}
+
+/**
+ * Check if an event date and time has already passed relative to current local time.
+ * Accepts either:
+ * - An event object: isEventPast(event)
+ * - Separate strings: isEventPast(event.date, event.time)
+ * 
+ * @param {Object|string} dateOrEvent 
+ * @param {string} [timeStr] 
+ * @returns {boolean}
+ */
+function isEventPast(dateOrEvent, timeStr) {
+  let dateStr = dateOrEvent;
+  if (typeof dateOrEvent === 'object' && dateOrEvent !== null) {
+    timeStr = dateOrEvent.time;
+    dateStr = dateOrEvent.date;
+  }
+
+  const eventDateTime = parseEventDateTime(dateStr, timeStr);
+  if (!eventDateTime) return false;
+
+  return eventDateTime <= new Date();
+}
+
+/**
+ * Sanitize image URLs to prevent script injection and handle fallbacks.
+ * @param {string} url 
+ * @returns {string}
+ */
+function sanitizeImageUrl(url) {
+  if (!url || typeof url !== 'string') {
+    return 'assets/images/event-placeholder.svg';
+  }
+  const trimmed = url.trim();
+  if (trimmed.startsWith('https://') || trimmed.startsWith('http://') || trimmed.startsWith('assets/')) {
+    return trimmed;
+  }
+  return 'assets/images/event-placeholder.svg';
+}
+
+// ==========================================================================
+// STORAGE INITIALIZATION & RESET
+// ==========================================================================
+
+/**
+ * Initialize storage with sample data if keys do not already exist or are corrupted.
  * Will not overwrite existing user modifications.
  */
 function initStorage() {
   try {
-    if (!localStorage.getItem(STORAGE_KEYS.EVENTS)) {
+    const storedEvents = localStorage.getItem(STORAGE_KEYS.EVENTS);
+    if (!storedEvents) {
       localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(SAMPLE_EVENTS));
+    } else {
+      // Validate that it's valid JSON and an array
+      try {
+        const parsed = JSON.parse(storedEvents);
+        if (!Array.isArray(parsed)) {
+          localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(SAMPLE_EVENTS));
+        }
+      } catch (e) {
+        localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(SAMPLE_EVENTS));
+      }
     }
-    if (!localStorage.getItem(STORAGE_KEYS.REGISTRATIONS)) {
+
+    const storedRegs = localStorage.getItem(STORAGE_KEYS.REGISTRATIONS);
+    if (!storedRegs) {
       localStorage.setItem(STORAGE_KEYS.REGISTRATIONS, JSON.stringify(SAMPLE_REGISTRATIONS));
+    } else {
+      try {
+        const parsed = JSON.parse(storedRegs);
+        if (!Array.isArray(parsed)) {
+          localStorage.setItem(STORAGE_KEYS.REGISTRATIONS, JSON.stringify(SAMPLE_REGISTRATIONS));
+        }
+      } catch (e) {
+        localStorage.setItem(STORAGE_KEYS.REGISTRATIONS, JSON.stringify(SAMPLE_REGISTRATIONS));
+      }
     }
   } catch (error) {
     console.error('Error initializing LocalStorage:', error);
@@ -146,11 +264,17 @@ function initStorage() {
  * Force reset LocalStorage back to initial sample state (useful for Viva demo)
  */
 function resetStorageToDefault() {
-  localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(SAMPLE_EVENTS));
-  localStorage.setItem(STORAGE_KEYS.REGISTRATIONS, JSON.stringify(SAMPLE_REGISTRATIONS));
+  try {
+    localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(SAMPLE_EVENTS));
+    localStorage.setItem(STORAGE_KEYS.REGISTRATIONS, JSON.stringify(SAMPLE_REGISTRATIONS));
+  } catch (err) {
+    console.error('Error resetting storage to default:', err);
+  }
 }
 
-// ---------------- EVENT OPERATIONS ----------------
+// ==========================================================================
+// EVENT CRUD OPERATIONS
+// ==========================================================================
 
 /**
  * Retrieve all events from LocalStorage
@@ -160,7 +284,9 @@ function getAllEvents() {
   initStorage();
   try {
     const data = localStorage.getItem(STORAGE_KEYS.EVENTS);
-    return data ? JSON.parse(data) : [];
+    if (!data) return [];
+    const parsed = JSON.parse(data);
+    return Array.isArray(parsed) ? parsed : [];
   } catch (err) {
     console.error('Error reading events from storage:', err);
     return [];
@@ -198,14 +324,14 @@ function addEvent(eventData) {
   const events = getAllEvents();
   const newEvent = {
     id: 'evt_' + Date.now(),
-    title: eventData.title.trim(),
-    category: eventData.category,
+    title: eventData.title ? eventData.title.trim() : 'Untitled Event',
+    category: eventData.category || 'General',
     date: eventData.date,
-    time: eventData.time,
-    venue: eventData.venue.trim(),
+    time: eventData.time ? eventData.time.trim() : '10:00 AM',
+    venue: eventData.venue ? eventData.venue.trim() : 'Campus Main Hall',
     maxParticipants: parseInt(eventData.maxParticipants, 10) || 50,
-    imageUrl: eventData.imageUrl ? eventData.imageUrl.trim() : 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80',
-    description: eventData.description.trim(),
+    imageUrl: sanitizeImageUrl(eventData.imageUrl),
+    description: eventData.description ? eventData.description.trim() : '',
     organizer: eventData.organizer ? eventData.organizer.trim() : 'College Event Committee'
   };
 
@@ -227,14 +353,14 @@ function updateEvent(id, updatedData) {
 
   events[index] = {
     ...events[index],
-    title: updatedData.title.trim(),
-    category: updatedData.category,
-    date: updatedData.date,
-    time: updatedData.time,
-    venue: updatedData.venue.trim(),
+    title: updatedData.title ? updatedData.title.trim() : events[index].title,
+    category: updatedData.category || events[index].category,
+    date: updatedData.date || events[index].date,
+    time: updatedData.time ? updatedData.time.trim() : events[index].time,
+    venue: updatedData.venue ? updatedData.venue.trim() : events[index].venue,
     maxParticipants: parseInt(updatedData.maxParticipants, 10) || events[index].maxParticipants,
-    imageUrl: updatedData.imageUrl ? updatedData.imageUrl.trim() : events[index].imageUrl,
-    description: updatedData.description.trim(),
+    imageUrl: sanitizeImageUrl(updatedData.imageUrl || events[index].imageUrl),
+    description: updatedData.description !== undefined ? updatedData.description.trim() : events[index].description,
     organizer: updatedData.organizer ? updatedData.organizer.trim() : events[index].organizer
   };
 
@@ -243,7 +369,7 @@ function updateEvent(id, updatedData) {
 }
 
 /**
- * Delete an event by ID (and optionally cascade cleanup registrations)
+ * Delete an event by ID (and cascade cleanup registrations)
  * @param {string} id 
  * @returns {boolean} Success status
  */
@@ -264,7 +390,9 @@ function deleteEvent(id) {
   return true;
 }
 
-// ---------------- REGISTRATION OPERATIONS ----------------
+// ==========================================================================
+// REGISTRATION OPERATIONS
+// ==========================================================================
 
 /**
  * Retrieve all registrations from LocalStorage
@@ -274,7 +402,9 @@ function getAllRegistrations() {
   initStorage();
   try {
     const data = localStorage.getItem(STORAGE_KEYS.REGISTRATIONS);
-    return data ? JSON.parse(data) : [];
+    if (!data) return [];
+    const parsed = JSON.parse(data);
+    return Array.isArray(parsed) ? parsed : [];
   } catch (err) {
     console.error('Error reading registrations from storage:', err);
     return [];
@@ -310,33 +440,21 @@ function getRegisteredCount(eventId) {
  * @returns {boolean}
  */
 function isStudentAlreadyRegistered(email, eventId) {
+  if (!email || !eventId) return false;
   const registrations = getAllRegistrations();
   const normalizedEmail = email.trim().toLowerCase();
   return registrations.some(r => r.eventId === eventId && r.email.trim().toLowerCase() === normalizedEmail);
 }
 
 /**
- * Check if an event date has passed
- * @param {string} eventDateStr (YYYY-MM-DD)
- * @returns {boolean}
- */
-function isEventPast(eventDateStr) {
-  if (!eventDateStr) return false;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const eventDate = new Date(eventDateStr + 'T00:00:00');
-  return eventDate < today;
-}
-
-/**
  * Register a student for an event with comprehensive validation:
  * 1. Event must exist
- * 2. Event date must not be in the past
+ * 2. Event date & time must not be in the past or already started
  * 3. Event capacity must not be exceeded
  * 4. Duplicate registration (same email + event ID) is blocked
  * 
  * @param {Object} data - { eventId, studentName, email, phone, rollNumber, department, year }
- * @returns {Object} { success: boolean, message: string, registration?: Object }
+ * @returns {Object} { success: boolean, message: string, registration?: Object, event?: Object }
  */
 function registerStudentForEvent(data) {
   const event = getEventById(data.eventId);
@@ -344,9 +462,9 @@ function registerStudentForEvent(data) {
     return { success: false, message: 'Event not found.' };
   }
 
-  // 1. Check if event is past
-  if (isEventPast(event.date)) {
-    return { success: false, message: 'Registration closed. This event has already taken place.' };
+  // 1. Check if event is past or has already started (date & time validation)
+  if (isEventPast(event)) {
+    return { success: false, message: 'Registration closed. This event has already started or concluded.' };
   }
 
   // 2. Check capacity
@@ -366,7 +484,7 @@ function registerStudentForEvent(data) {
     eventId: data.eventId,
     studentName: data.studentName.trim(),
     email: data.email.trim().toLowerCase(),
-    phone: data.phone.trim(),
+    phone: data.phone.trim().replace(/[^0-9]/g, ''),
     rollNumber: data.rollNumber ? data.rollNumber.trim() : 'N/A',
     department: data.department ? data.department.trim() : 'General',
     year: data.year ? data.year.trim() : '1st Year',
@@ -404,7 +522,8 @@ function getRegistrationsByEmail(email) {
       return {
         ...reg,
         event: event || {
-          title: 'Event Removed',
+          id: reg.eventId,
+          title: 'Event Archived / Removed',
           date: 'N/A',
           time: 'N/A',
           venue: 'N/A',
@@ -442,7 +561,7 @@ function getDashboardStats() {
   let pastCount = 0;
 
   events.forEach(event => {
-    if (isEventPast(event.date)) {
+    if (isEventPast(event)) {
       pastCount++;
     } else {
       upcomingCount++;

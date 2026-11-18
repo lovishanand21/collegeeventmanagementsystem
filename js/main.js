@@ -27,6 +27,13 @@ function initNavbar() {
       navLinks.classList.toggle('active');
     });
 
+    // Close menu when clicking any nav link on mobile
+    navLinks.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        navLinks.classList.remove('active');
+      });
+    });
+
     // Close menu when clicking outside
     document.addEventListener('click', (e) => {
       if (!toggleBtn.contains(e.target) && !navLinks.contains(e.target)) {
@@ -140,7 +147,12 @@ function formatDisplayDate(dateStr) {
   if (!dateStr) return 'N/A';
   const parts = dateStr.split('-');
   if (parts.length !== 3) return dateStr;
-  const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+  const year = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10) - 1;
+  const day = parseInt(parts[2], 10);
+  if (isNaN(year) || isNaN(month) || isNaN(day)) return dateStr;
+
+  const dateObj = new Date(year, month, day);
   return dateObj.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
@@ -149,12 +161,13 @@ function formatDisplayDate(dateStr) {
 }
 
 /**
- * Prevent XSS by escaping HTML entities
- * @param {string} str 
+ * Prevent XSS by safely escaping HTML entities in user and data strings
+ * @param {*} val 
  * @returns {string}
  */
-function escapeHTML(str) {
-  if (typeof str !== 'string') return '';
+function escapeHTML(val) {
+  if (val === null || val === undefined) return '';
+  const str = String(val);
   return str.replace(/[&<>'"]/g, 
     tag => ({
       '&': '&amp;',
@@ -165,6 +178,13 @@ function escapeHTML(str) {
     }[tag] || tag)
   );
 }
+
+// Ensure global availability
+window.escapeHTML = escapeHTML;
+window.formatDisplayDate = formatDisplayDate;
+window.showToast = showToast;
+window.openModal = openModal;
+window.closeModal = closeModal;
 
 /**
  * Render quick live stats in the homepage hero
@@ -188,9 +208,9 @@ function renderHomeFeaturedEvents() {
   if (!container) return;
 
   const events = getAllEvents();
-  // Filter for upcoming events and take top 3
+  // Filter for upcoming events (date and time) and take top 3
   const upcomingEvents = events
-    .filter(evt => !isEventPast(evt.date))
+    .filter(evt => !isEventPast(evt))
     .slice(0, 3);
 
   if (upcomingEvents.length === 0) {
@@ -230,7 +250,7 @@ function renderHomeFeaturedEvents() {
             <span>⏰ ${escapeHTML(event.time)}</span>
           </div>
           <h3 class="event-card-title">
-            <a href="event-details.html?id=${event.id}">${escapeHTML(event.title)}</a>
+            <a href="event-details.html?id=${encodeURIComponent(event.id)}">${escapeHTML(event.title)}</a>
           </h3>
           <p class="event-card-desc">${escapeHTML(event.description)}</p>
           <div class="event-card-meta">
@@ -248,7 +268,7 @@ function renderHomeFeaturedEvents() {
           </div>
         </div>
         <div class="event-card-footer">
-          <a href="event-details.html?id=${event.id}" class="btn ${isFull ? 'btn-secondary' : 'btn-primary'}">
+          <a href="event-details.html?id=${encodeURIComponent(event.id)}" class="btn ${isFull ? 'btn-secondary' : 'btn-primary'}">
             ${isFull ? 'View Details' : 'Register Now →'}
           </a>
         </div>

@@ -3,7 +3,7 @@
  * admin.js - Admin Authentication, Dashboard Metrics, and Event/Registration CRUD Operations
  */
 
-// Demo Admin Credentials
+// Demo Admin Credentials (Frontend Demonstration)
 const ADMIN_CREDENTIALS = {
   username: 'admin',
   password: 'admin123'
@@ -31,37 +31,42 @@ document.addEventListener('DOMContentLoaded', () => {
 function initAdminLogin() {
   // Redirect to dashboard if already authenticated in this session
   if (sessionStorage.getItem(SESSION_KEY) === 'true') {
-    window.location.href = 'admin-dashboard.html';
+    window.location.replace('admin-dashboard.html');
     return;
   }
 
   const form = document.getElementById('admin-login-form');
   const errorBox = document.getElementById('admin-login-error');
 
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const username = document.getElementById('admin-username').value.trim();
-    const password = document.getElementById('admin-password').value.trim();
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const usernameInput = document.getElementById('admin-username');
+      const passwordInput = document.getElementById('admin-password');
 
-    if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-      sessionStorage.setItem(SESSION_KEY, 'true');
-      showToast('Welcome Admin', 'Login successful. Redirecting to dashboard...', 'success');
-      setTimeout(() => {
-        window.location.href = 'admin-dashboard.html';
-      }, 700);
-    } else {
-      if (errorBox) {
-        errorBox.textContent = 'Invalid credentials. Please use the demo credentials provided.';
-        errorBox.classList.add('visible');
+      const username = usernameInput ? usernameInput.value.trim() : '';
+      const password = passwordInput ? passwordInput.value.trim() : '';
+
+      if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+        sessionStorage.setItem(SESSION_KEY, 'true');
+        showToast('Welcome Admin', 'Login successful. Redirecting to dashboard...', 'success');
+        setTimeout(() => {
+          window.location.replace('admin-dashboard.html');
+        }, 500);
+      } else {
+        if (errorBox) {
+          errorBox.textContent = 'Invalid credentials. Please use the demonstration credentials (admin / admin123).';
+          errorBox.classList.add('visible');
+        }
+        showToast('Authentication Failed', 'Invalid username or password.', 'error');
       }
-      showToast('Authentication Failed', 'Invalid username or password.', 'error');
-    }
-  });
+    });
+  }
 }
 
 function protectAdminRoute() {
   if (sessionStorage.getItem(SESSION_KEY) !== 'true') {
-    window.location.href = 'admin-login.html';
+    window.location.replace('admin-login.html');
   }
 }
 
@@ -69,8 +74,8 @@ function handleAdminLogout() {
   sessionStorage.removeItem(SESSION_KEY);
   showToast('Logged Out', 'You have been logged out of the admin panel.', 'info');
   setTimeout(() => {
-    window.location.href = 'admin-login.html';
-  }, 500);
+    window.location.replace('admin-login.html');
+  }, 400);
 }
 
 // ==========================================================================
@@ -87,9 +92,27 @@ function initAdminDashboard() {
   // Mobile menu toggle
   const menuToggle = document.getElementById('admin-menu-toggle');
   const sidebar = document.querySelector('.admin-sidebar');
+  const closeSidebarBtn = document.getElementById('admin-sidebar-close');
+
   if (menuToggle && sidebar) {
-    menuToggle.addEventListener('click', () => {
+    menuToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
       sidebar.classList.toggle('open');
+    });
+
+    if (closeSidebarBtn) {
+      closeSidebarBtn.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+      });
+    }
+
+    // Close when clicking outside of the sidebar on mobile
+    document.addEventListener('click', (e) => {
+      if (sidebar.classList.contains('open')) {
+        if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+          sidebar.classList.remove('open');
+        }
+      }
     });
   }
 }
@@ -187,7 +210,7 @@ function renderOverviewStats() {
       `;
     } else {
       recentTableBody.innerHTML = stats.recentRegistrations.map(reg => {
-        const event = events.find(e => e.id === reg.eventId) || { title: 'Unknown Event' };
+        const event = events.find(e => e.id === reg.eventId) || { title: 'Archived Event' };
         return `
           <tr>
             <td><strong>${escapeHTML(reg.studentName)}</strong></td>
@@ -224,7 +247,7 @@ function renderAdminEventsTable() {
 
   tbody.innerHTML = events.map(evt => {
     const regCount = getRegisteredCount(evt.id);
-    const isPast = isEventPast(evt.date);
+    const isPast = isEventPast(evt);
 
     return `
       <tr>
@@ -233,7 +256,7 @@ function renderAdminEventsTable() {
             <img src="${escapeHTML(evt.imageUrl)}" alt="${escapeHTML(evt.title)}" class="table-event-thumb" onerror="this.onerror=null; this.src='assets/images/event-placeholder.svg';">
             <div>
               <div style="font-weight: 700; color: var(--text-main);">${escapeHTML(evt.title)}</div>
-              <div style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">${evt.id}</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">${escapeHTML(evt.id)}</div>
             </div>
           </div>
         </td>
@@ -246,7 +269,7 @@ function renderAdminEventsTable() {
         </td>
         <td>${escapeHTML(evt.venue)}</td>
         <td>
-          <strong>${regCount}</strong> / ${evt.maxParticipants}
+          <strong>${regCount}</strong> / ${escapeHTML(evt.maxParticipants)}
           ${isPast ? '<span class="badge badge-past" style="margin-left: 4px;">Past</span>' : ''}
         </td>
         <td>
@@ -282,12 +305,12 @@ function renderAdminRegistrationsTable() {
   if (query) {
     registrations = registrations.filter(r => {
       const event = events.find(e => e.id === r.eventId);
-      const eventTitle = event ? event.title.toLowerCase() : '';
+      const eventTitle = event && event.title ? event.title.toLowerCase() : '';
       return (
-        r.studentName.toLowerCase().includes(query) ||
-        r.email.toLowerCase().includes(query) ||
-        r.phone.includes(query) ||
-        r.rollNumber.toLowerCase().includes(query) ||
+        (r.studentName && r.studentName.toLowerCase().includes(query)) ||
+        (r.email && r.email.toLowerCase().includes(query)) ||
+        (r.phone && r.phone.includes(query)) ||
+        (r.rollNumber && r.rollNumber.toLowerCase().includes(query)) ||
         eventTitle.includes(query)
       );
     });
@@ -309,11 +332,11 @@ function renderAdminRegistrationsTable() {
   }
 
   tbody.innerHTML = registrations.map(reg => {
-    const event = events.find(e => e.id === reg.eventId) || { title: 'Unknown Event' };
+    const event = events.find(e => e.id === reg.eventId) || { title: 'Archived Event' };
 
     return `
       <tr>
-        <td style="font-family: var(--font-mono); font-size: 0.8rem;">${reg.id}</td>
+        <td style="font-family: var(--font-mono); font-size: 0.8rem;">${escapeHTML(reg.id)}</td>
         <td>
           <strong>${escapeHTML(reg.studentName)}</strong>
           <div style="font-size: 0.75rem; color: var(--text-muted);">Roll: ${escapeHTML(reg.rollNumber)}</div>
@@ -321,7 +344,7 @@ function renderAdminRegistrationsTable() {
         <td>${escapeHTML(reg.email)}</td>
         <td>${escapeHTML(reg.phone)}</td>
         <td>
-          <a href="event-details.html?id=${reg.eventId}" target="_blank" style="color: var(--primary); font-weight: 500;">
+          <a href="event-details.html?id=${encodeURIComponent(reg.eventId)}" target="_blank" style="color: var(--primary); font-weight: 500;">
             ${escapeHTML(event.title)}
           </a>
         </td>
@@ -352,7 +375,15 @@ window.openAddEventModal = function() {
   const futureDate = new Date();
   futureDate.setDate(futureDate.getDate() + 7);
   const dateInput = document.getElementById('event-date');
-  if (dateInput) dateInput.value = futureDate.toISOString().split('T')[0];
+  if (dateInput) {
+    const y = futureDate.getFullYear();
+    const m = String(futureDate.getMonth() + 1).padStart(2, '0');
+    const d = String(futureDate.getDate()).padStart(2, '0');
+    dateInput.value = `${y}-${m}-${d}`;
+  }
+
+  const timeInput = document.getElementById('event-time');
+  if (timeInput) timeInput.value = '10:00 AM';
 
   openModal('event-editor-modal');
 };
@@ -368,15 +399,25 @@ window.openEditEventModal = function(id) {
   const modalTitle = document.getElementById('event-modal-title');
   if (modalTitle) modalTitle.textContent = 'Edit Event Details';
 
-  document.getElementById('event-title').value = event.title;
-  document.getElementById('event-category').value = event.category;
-  document.getElementById('event-date').value = event.date;
-  document.getElementById('event-time').value = event.time;
-  document.getElementById('event-venue').value = event.venue;
-  document.getElementById('event-max-participants').value = event.maxParticipants;
-  document.getElementById('event-image-url').value = event.imageUrl || '';
-  document.getElementById('event-organizer').value = event.organizer || '';
-  document.getElementById('event-description').value = event.description;
+  const titleInput = document.getElementById('event-title');
+  const catInput = document.getElementById('event-category');
+  const dateInput = document.getElementById('event-date');
+  const timeInput = document.getElementById('event-time');
+  const venueInput = document.getElementById('event-venue');
+  const maxInput = document.getElementById('event-max-participants');
+  const imgInput = document.getElementById('event-image-url');
+  const orgInput = document.getElementById('event-organizer');
+  const descInput = document.getElementById('event-description');
+
+  if (titleInput) titleInput.value = event.title || '';
+  if (catInput) catInput.value = event.category || 'General';
+  if (dateInput) dateInput.value = event.date || '';
+  if (timeInput) timeInput.value = event.time || '10:00 AM';
+  if (venueInput) venueInput.value = event.venue || '';
+  if (maxInput) maxInput.value = event.maxParticipants || 50;
+  if (imgInput) imgInput.value = event.imageUrl || '';
+  if (orgInput) orgInput.value = event.organizer || '';
+  if (descInput) descInput.value = event.description || '';
 
   openModal('event-editor-modal');
 };
@@ -384,19 +425,36 @@ window.openEditEventModal = function(id) {
 function handleSaveEvent(e) {
   e.preventDefault();
 
-  const title = document.getElementById('event-title').value.trim();
-  const category = document.getElementById('event-category').value;
-  const date = document.getElementById('event-date').value;
-  const time = document.getElementById('event-time').value.trim();
-  const venue = document.getElementById('event-venue').value.trim();
-  const maxParticipants = parseInt(document.getElementById('event-max-participants').value, 10);
-  const imageUrl = document.getElementById('event-image-url').value.trim();
-  const organizer = document.getElementById('event-organizer').value.trim();
-  const description = document.getElementById('event-description').value.trim();
+  const titleInput = document.getElementById('event-title');
+  const catInput = document.getElementById('event-category');
+  const dateInput = document.getElementById('event-date');
+  const timeInput = document.getElementById('event-time');
+  const venueInput = document.getElementById('event-venue');
+  const maxInput = document.getElementById('event-max-participants');
+  const imgInput = document.getElementById('event-image-url');
+  const orgInput = document.getElementById('event-organizer');
+  const descInput = document.getElementById('event-description');
+
+  const title = titleInput ? titleInput.value.trim() : '';
+  const category = catInput ? catInput.value : 'General';
+  const date = dateInput ? dateInput.value.trim() : '';
+  const time = timeInput ? timeInput.value.trim() : '';
+  const venue = venueInput ? venueInput.value.trim() : '';
+  const maxParticipants = maxInput ? parseInt(maxInput.value, 10) : 50;
+  const imageUrl = imgInput ? imgInput.value.trim() : '';
+  const organizer = orgInput ? orgInput.value.trim() : 'College Event Committee';
+  const description = descInput ? descInput.value.trim() : '';
 
   // Validation
-  if (!title || !date || !time || !venue || !description || isNaN(maxParticipants)) {
-    showToast('Validation Error', 'Please complete all required fields properly.', 'error');
+  if (!title || !date || !time || !venue || !description || isNaN(maxParticipants) || maxParticipants <= 0) {
+    showToast('Validation Error', 'Please complete all required fields properly with valid values.', 'error');
+    return;
+  }
+
+  // Validate date & time format
+  const parsedDateTime = parseEventDateTime(date, time);
+  if (!parsedDateTime || isNaN(parsedDateTime.getTime())) {
+    showToast('Invalid Time Format', 'Please enter time in a valid format such as "10:00 AM", "05:30 PM", or "14:30".', 'error');
     return;
   }
 
@@ -407,7 +465,7 @@ function handleSaveEvent(e) {
     time,
     venue,
     maxParticipants,
-    imageUrl: imageUrl || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80',
+    imageUrl: imageUrl || 'assets/images/event-placeholder.svg',
     organizer: organizer || 'College Event Committee',
     description
   };

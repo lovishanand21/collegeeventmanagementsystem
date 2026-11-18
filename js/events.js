@@ -41,7 +41,7 @@ function initEventsExplorer() {
     pill.addEventListener('click', () => {
       categoryPills.forEach(p => p.classList.remove('active'));
       pill.classList.add('active');
-      filterState.category = pill.getAttribute('data-category');
+      filterState.category = pill.getAttribute('data-category') || 'ALL';
       renderFilteredEvents();
     });
   });
@@ -51,7 +51,7 @@ function initEventsExplorer() {
     tab.addEventListener('click', () => {
       statusTabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
-      filterState.status = tab.getAttribute('data-status');
+      filterState.status = tab.getAttribute('data-status') || 'ALL';
       renderFilteredEvents();
     });
   });
@@ -69,7 +69,7 @@ function initEventsExplorer() {
   const paramCategory = urlParams.get('category');
   if (paramCategory) {
     const matchingPill = Array.from(categoryPills).find(
-      p => p.getAttribute('data-category').toLowerCase() === paramCategory.toLowerCase()
+      p => (p.getAttribute('data-category') || '').toLowerCase() === paramCategory.toLowerCase()
     );
     if (matchingPill) {
       matchingPill.click();
@@ -91,35 +91,41 @@ function renderFilteredEvents() {
 
   let events = getAllEvents();
 
-  // 1. Filter by Search Query
+  // 1. Filter by Search Query (Title, Description, or Venue)
   if (filterState.searchQuery) {
     events = events.filter(evt =>
-      evt.title.toLowerCase().includes(filterState.searchQuery) ||
-      evt.description.toLowerCase().includes(filterState.searchQuery) ||
-      evt.venue.toLowerCase().includes(filterState.searchQuery)
+      (evt.title && evt.title.toLowerCase().includes(filterState.searchQuery)) ||
+      (evt.description && evt.description.toLowerCase().includes(filterState.searchQuery)) ||
+      (evt.venue && evt.venue.toLowerCase().includes(filterState.searchQuery))
     );
   }
 
   // 2. Filter by Category
   if (filterState.category !== 'ALL') {
-    events = events.filter(evt => evt.category.toUpperCase() === filterState.category.toUpperCase());
+    events = events.filter(evt => 
+      evt.category && evt.category.toUpperCase() === filterState.category.toUpperCase()
+    );
   }
 
-  // 3. Filter by Status (Upcoming vs Past)
+  // 3. Filter by Status (Upcoming vs Past) using date and time
   if (filterState.status === 'UPCOMING') {
-    events = events.filter(evt => !isEventPast(evt.date));
+    events = events.filter(evt => !isEventPast(evt));
   } else if (filterState.status === 'PAST') {
-    events = events.filter(evt => isEventPast(evt.date));
+    events = events.filter(evt => isEventPast(evt));
   }
 
-  // 4. Sort Events
+  // 4. Sort Events (handling both date and time for accurate chronology)
   events.sort((a, b) => {
     if (filterState.sortBy === 'date-asc') {
-      return new Date(a.date) - new Date(b.date);
+      const dtA = parseEventDateTime(a.date, a.time);
+      const dtB = parseEventDateTime(b.date, b.time);
+      return (dtA ? dtA.getTime() : 0) - (dtB ? dtB.getTime() : 0);
     } else if (filterState.sortBy === 'date-desc') {
-      return new Date(b.date) - new Date(a.date);
+      const dtA = parseEventDateTime(a.date, a.time);
+      const dtB = parseEventDateTime(b.date, b.time);
+      return (dtB ? dtB.getTime() : 0) - (dtA ? dtA.getTime() : 0);
     } else if (filterState.sortBy === 'title-asc') {
-      return a.title.localeCompare(b.title);
+      return (a.title || '').localeCompare(b.title || '');
     }
     return 0;
   });
@@ -144,7 +150,7 @@ function renderFilteredEvents() {
 
   // Render event cards
   container.innerHTML = events.map(event => {
-    const isPast = isEventPast(event.date);
+    const isPast = isEventPast(event);
     const registeredCount = getRegisteredCount(event.id);
     const seatsRemaining = Math.max(0, event.maxParticipants - registeredCount);
     const isFull = seatsRemaining === 0;
@@ -177,7 +183,7 @@ function renderFilteredEvents() {
             <span>⏰ ${escapeHTML(event.time)}</span>
           </div>
           <h3 class="event-card-title">
-            <a href="event-details.html?id=${event.id}">${escapeHTML(event.title)}</a>
+            <a href="event-details.html?id=${encodeURIComponent(event.id)}">${escapeHTML(event.title)}</a>
           </h3>
           <p class="event-card-desc">${escapeHTML(event.description)}</p>
           <div class="event-card-meta">
@@ -195,7 +201,7 @@ function renderFilteredEvents() {
           </div>
         </div>
         <div class="event-card-footer">
-          <a href="event-details.html?id=${event.id}" class="btn ${isPast ? 'btn-secondary' : (isFull ? 'btn-secondary' : 'btn-primary')}">
+          <a href="event-details.html?id=${encodeURIComponent(event.id)}" class="btn ${isPast ? 'btn-secondary' : (isFull ? 'btn-secondary' : 'btn-primary')}">
             ${isPast ? 'View Event Recap' : (isFull ? 'View Details (Full)' : 'Register Now →')}
           </a>
         </div>

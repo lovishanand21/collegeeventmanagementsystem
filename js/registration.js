@@ -26,13 +26,13 @@ function initEventDetailsPage() {
   const eventId = urlParams.get('id');
 
   if (!eventId) {
-    renderEventNotFound('No event specified in URL.');
+    renderEventNotFound('No event specified in the URL. Please return to the events catalog.');
     return;
   }
 
   currentEvent = getEventById(eventId);
   if (!currentEvent) {
-    renderEventNotFound('The event you requested could not be found or has been removed.');
+    renderEventNotFound('The event you requested could not be found or has been removed from the system.');
     return;
   }
 
@@ -44,7 +44,7 @@ function renderEventNotFound(message) {
   const container = document.getElementById('event-details-container');
   if (container) {
     container.innerHTML = `
-      <div class="empty-state" style="margin-top: 3rem;">
+      <div class="empty-state" style="margin-top: 3rem; margin-bottom: 4rem;">
         <div class="empty-state-icon">⚠️</div>
         <h2 class="empty-state-title">Event Not Found</h2>
         <p class="empty-state-desc">${escapeHTML(message)}</p>
@@ -67,7 +67,7 @@ function renderEventDetails(event) {
       this.onerror = null;
       this.src = 'assets/images/event-placeholder.svg';
     };
-    bannerImg.src = event.imageUrl;
+    bannerImg.src = event.imageUrl || 'assets/images/event-placeholder.svg';
     bannerImg.alt = event.title;
   }
 
@@ -103,7 +103,8 @@ function renderEventDetails(event) {
 }
 
 function updateCapacityUI(event) {
-  const isPast = isEventPast(event.date);
+  // Validates both date and time to check if event has already started
+  const isPast = isEventPast(event);
   const registeredCount = getRegisteredCount(event.id);
   const seatsRemaining = Math.max(0, event.maxParticipants - registeredCount);
   const isFull = seatsRemaining === 0;
@@ -122,7 +123,11 @@ function updateCapacityUI(event) {
 
   if (capacityFill) {
     capacityFill.style.width = `${capacityPercent}%`;
-    if (isFull) capacityFill.style.background = 'var(--danger)';
+    if (isFull) {
+      capacityFill.style.background = 'var(--danger)';
+    } else {
+      capacityFill.style.background = 'var(--primary)';
+    }
   }
 
   if (statusBadge) {
@@ -151,7 +156,7 @@ function updateCapacityUI(event) {
           <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔒</div>
           <h4 style="font-weight: 700; color: var(--text-main);">Registration Closed</h4>
           <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">
-            This event took place on ${formatDisplayDate(event.date)}. Registrations are closed.
+            This event took place or has already started (${formatDisplayDate(event.date)} at ${escapeHTML(event.time)}). Registrations are closed.
           </p>
         </div>
       `;
@@ -194,10 +199,10 @@ function setupRegistrationForm(event) {
     const deptInput = document.getElementById('reg-department');
     const yearInput = document.getElementById('reg-year');
 
-    const name = nameInput.value.trim();
-    const email = emailInput.value.trim().toLowerCase();
-    const phone = phoneInput.value.trim();
-    const rollNumber = rollInput.value.trim();
+    const name = nameInput ? nameInput.value.trim() : '';
+    const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
+    const phone = phoneInput ? phoneInput.value.trim() : '';
+    const rollNumber = rollInput ? rollInput.value.trim() : '';
     const department = deptInput ? deptInput.value : 'Computer Science';
     const year = yearInput ? yearInput.value : '1st Year';
 
@@ -207,16 +212,19 @@ function setupRegistrationForm(event) {
     if (name.length < 3) {
       setFieldError('reg-name', 'Please enter your full name (at least 3 characters).');
       isValid = false;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setFieldError('reg-email', 'Please provide a valid college email address.');
+    } else if (!/^[a-zA-Z\s.'-]+$/.test(name)) {
+      setFieldError('reg-name', 'Name should contain only valid letters and spaces.');
       isValid = false;
     }
 
-    const phoneRegex = /^[0-9]{10}$/;
-    if (!phoneRegex.test(phone.replace(/[^0-9]/g, ''))) {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+      setFieldError('reg-email', 'Please provide a valid college email address (e.g. name@college.edu).');
+      isValid = false;
+    }
+
+    const cleanPhone = phone.replace(/[^0-9]/g, '');
+    if (cleanPhone.length !== 10) {
       setFieldError('reg-phone', 'Please enter a valid 10-digit mobile number.');
       isValid = false;
     }
@@ -228,12 +236,12 @@ function setupRegistrationForm(event) {
 
     if (!isValid) return;
 
-    // 2. Submit Registration to Storage
+    // 2. Submit Registration to Storage Layer
     const result = registerStudentForEvent({
       eventId: event.id,
       studentName: name,
       email: email,
-      phone: phone,
+      phone: cleanPhone,
       rollNumber: rollNumber,
       department: department,
       year: year
@@ -247,7 +255,7 @@ function setupRegistrationForm(event) {
     }
 
     // 3. Success Workflow
-    showToast('Registration Confirmed!', 'Your ticket has been generated successfully.', 'success');
+    showToast('Registration Confirmed!', 'Your ticket pass has been generated successfully.', 'success');
     form.reset();
     updateCapacityUI(event);
 
@@ -268,6 +276,7 @@ function setFieldError(fieldId, errorMsg) {
 }
 
 function clearFormErrors(form) {
+  if (!form) return;
   form.querySelectorAll('.form-control').forEach(ctrl => {
     ctrl.style.borderColor = '';
   });
@@ -356,7 +365,6 @@ window.printPass = function() {
 function initMyRegistrationsPage() {
   const form = document.getElementById('my-reg-search-form');
   const emailInput = document.getElementById('my-reg-email-input');
-  const resultsContainer = document.getElementById('my-registrations-container');
 
   // Check if URL has ?email=...
   const urlParams = new URLSearchParams(window.location.search);
@@ -369,7 +377,7 @@ function initMyRegistrationsPage() {
   if (form) {
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      const email = emailInput.value.trim().toLowerCase();
+      const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
       if (!email) {
         showToast('Input Required', 'Please enter your registered college email.', 'warning');
         return;
@@ -398,7 +406,7 @@ function renderStudentRegistrations(email) {
   }
 
   container.innerHTML = `
-    <div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+    <div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
       <h3 style="font-size: 1.25rem; font-weight: 700;">
         Found ${registrations.length} registered event${registrations.length === 1 ? '' : 's'} for 
         <span style="color: var(--primary);">${escapeHTML(email)}</span>
@@ -406,11 +414,11 @@ function renderStudentRegistrations(email) {
     </div>
     <div class="registrations-list-grid">
       ${registrations.map(reg => {
-        const isPast = isEventPast(reg.event.date);
+        const isPast = isEventPast(reg.event);
         return `
           <div class="registration-item-card" id="card-${reg.id}">
             <div class="registration-info">
-              <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; flex-wrap: wrap;">
                 <span class="badge ${isPast ? 'badge-past' : 'badge-success'}">
                   ${isPast ? 'Attended / Completed' : 'Registration Confirmed'}
                 </span>
