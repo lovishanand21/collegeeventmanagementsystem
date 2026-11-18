@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Details & Registration - CEMS</title>
+  <meta name="description" content="View complete event schedule, guidelines, venue details, and register online for your entry pass.">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/events.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="nav-brand">
+        <span class="brand-badge">🎓</span>
+        <span class="brand-text">CEMS<span class="highlight">.Campus</span></span>
+      </a>
+
+      <button class="nav-toggle" aria-label="Toggle navigation menu">
+        ☰
+      </button>
+
+      <ul class="nav-links">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="events.html" class="nav-link">Explore Events</a></li>
+        <li><a href="my-registrations.html" class="nav-link">My Registrations</a></li>
+        <li><a href="index.html#about" class="nav-link">About</a></li>
+        <li>
+          <a href="admin-login.html" class="btn btn-outline-primary btn-sm">
+            🔐 Admin Portal
+          </a>
+        </li>
+      </ul>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container" id="event-details-container">
+
+      <!-- Breadcrumbs -->
+      <nav class="breadcrumb-nav">
+        <a href="index.html">Home</a> &gt; 
+        <a href="events.html">Events</a> &gt; 
+        <span id="breadcrumb-event-title" style="color: var(--text-main); font-weight: 600;">Loading...</span>
+      </nav>
+
+      <!-- Event 2-Column Grid Layout -->
+      <div class="event-details-grid">
+
+        <!-- Left Column: Media, Information, Guidelines -->
+        <article class="event-details-main">
+          <img id="detail-banner-img" src="" alt="Event Banner" class="event-banner-image">
+
+          <div class="event-details-header">
+            <div class="event-details-badges">
+              <span id="detail-category-badge" class="badge badge-general">Category</span>
+              <span id="detail-status-badge" class="badge badge-success">Registrations Open</span>
+            </div>
+            <h1 class="event-details-title" id="detail-title">Loading Event Title...</h1>
+            <div class="event-organizer-chip">
+              <span>🏛️ Organized by:</span>
+              <strong id="detail-organizer">College Event Committee</strong>
+            </div>
+          </div>
+
+          <!-- Quick Metas Strip -->
+          <div class="event-details-meta-grid">
+            <div class="meta-box">
+              <span class="meta-box-icon">🗓️</span>
+              <div>
+                <div class="meta-box-label">Date</div>
+                <div class="meta-box-value" id="detail-date">TBA</div>
+              </div>
+            </div>
+
+            <div class="meta-box">
+              <span class="meta-box-icon">⏰</span>
+              <div>
+                <div class="meta-box-label">Time</div>
+                <div class="meta-box-value" id="detail-time">TBA</div>
+              </div>
+            </div>
+
+            <div class="meta-box">
+              <span class="meta-box-icon">📍</span>
+              <div>
+                <div class="meta-box-label">Venue</div>
+                <div class="meta-box-value" id="detail-venue">TBA</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Description & Rules -->
+          <div class="event-details-body">
+            <h3>Event Overview & Description</h3>
+            <p class="event-description-text" id="detail-description">
+              Loading description...
+            </p>
+
+            <h3>Participation Guidelines</h3>
+            <ul class="event-rules-list">
+              <li>Entry is strictly permitted upon presentation of the official digital pass and physical College ID Card.</li>
+              <li>Please report to the venue at least 20 minutes prior to the scheduled start time.</li>
+              <li>Participating teams or solo attendees must bring their own required materials (laptops, athletic gear, etc.).</li>
+              <li>Certificates of participation will be awarded to all registered attendees.</li>
+            </ul>
+          </div>
+        </article>
+
+        <!-- Right Column: Registration Card -->
+        <aside>
+          <div class="registration-card">
+            <div class="reg-card-header">
+              <h2 class="reg-card-title">Student Registration</h2>
+              <p class="reg-card-subtitle">Secure your free entry pass in seconds.</p>
+            </div>
+
+            <!-- Seat Availability Box -->
+            <div class="capacity-indicator-box">
+              <div class="capacity-indicator-header">
+                <span>Seat Availability</span>
+                <span id="detail-seats-count">0 / 0 Seats Filled</span>
+              </div>
+              <div class="capacity-indicator-bar">
+                <div class="capacity-indicator-fill" id="detail-capacity-fill" style="width: 0%;"></div>
+              </div>
+            </div>
+
+            <!-- Notice Box (If closed or full) -->
+            <div id="registration-notice-box" style="display: none;"></div>
+
+            <!-- Registration Form -->
+            <div id="registration-form-box">
+              <form id="student-registration-form" novalidate>
+
+                <div class="form-group">
+                  <label for="reg-name" class="form-label">
+                    Full Student Name <span class="required">*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    id="reg-name" 
+                    class="form-control" 
+                    placeholder="e.g. Rahul Sharma" 
+                    required
+                  >
+                  <div class="form-error" id="reg-name-error"></div>
+                </div>
+
+                <div class="form-group">
+                  <label for="reg-email" class="form-label">
+                    College Email Address <span class="required">*</span>
+                  </label>
+                  <input 
+                    type="email" 
+                    id="reg-email" 
+                    class="form-control" 
+                    placeholder="e.g. rahul.sharma@college.edu" 
+                    required
+                  >
+                  <div class="form-hint">Used for pass verification & duplicate prevention.</div>
+                  <div class="form-error" id="reg-email-error"></div>
+                </div>
+
+                <div class="form-group">
+                  <label for="reg-phone" class="form-label">
+                    Phone Number (10 Digits) <span class="required">*</span>
+                  </label>
+                  <input 
+                    type="tel" 
+                    id="reg-phone" 
+                    class="form-control" 
+                    placeholder="e.g. 9876543210" 
+                    maxlength="10" 
+                    required
+                  >
+                  <div class="form-error" id="reg-phone-error"></div>
+                </div>
+
+                <div class="form-group">
+                  <label for="reg-roll" class="form-label">
+                    Roll Number / Student ID <span class="required">*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    id="reg-roll" 
+                    class="form-control" 
+                    placeholder="e.g. CS2024-089" 
+                    required
+                  >
+                  <div class="form-error" id="reg-roll-error"></div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                  <div class="form-group">
+                    <label for="reg-department" class="form-label">Department</label>
+                    <select id="reg-department" class="form-control">
+                      <option value="Computer Science">Computer Science</option>
+                      <option value="Information Technology">Information Tech</option>
+                      <option value="Electronics & Comm">Electronics (ECE)</option>
+                      <option value="Mechanical Engg">Mechanical</option>
+                      <option value="Business Admin (BBA/MBA)">Management</option>
+                      <option value="Applied Sciences">Applied Sciences</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="reg-year" class="form-label">Year of Study</label>
+                    <select id="reg-year" class="form-control">
+                      <option value="1st Year">1st Year</option>
+                      <option value="2nd Year">2nd Year</option>
+                      <option value="3rd Year">3rd Year</option>
+                      <option value="4th Year">4th Year</option>
+                    </select>
+                  </div>
+                </div>
+
+                <button type="submit" id="submit-registration-btn" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem; padding: 0.85rem;">
+                  🎟️ Confirm & Generate Pass
+                </button>
+
+              </form>
+            </div>
+
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Pass Modal Container -->
+  <div id="pass-modal-container"></div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="index.html" class="nav-brand">
+            <span class="brand-badge">🎓</span>
+            <span class="brand-text">CEMS<span class="highlight">.Campus</span></span>
+          </a>
+          <p class="footer-text">
+            Official platform for college event discovery, registrations, and pass generation.
+          </p>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Navigation</h4>
+          <ul class="footer-links">
+            <li><a href="index.html" class="footer-link">Home</a></li>
+            <li><a href="events.html" class="footer-link">All Events</a></li>
+            <li><a href="my-registrations.html" class="footer-link">My Registrations</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Need Assistance?</h4>
+          <p class="footer-text" style="font-size: 0.85rem;">
+            For event queries, reach out to the respective organizing department or student coordinator.
+          </p>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 College Event Management System (CEMS).</div>
+        <div class="viva-callout-pill">🎓 Academic Web Development Project</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/storage.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/registration.js"></script>
+</body>
+</html>

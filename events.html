@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Explore College Events - CEMS</title>
+  <meta name="description" content="Browse all college events, search by title, and filter by technical, cultural, sports, and workshop categories.">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/events.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="nav-brand">
+        <span class="brand-badge">🎓</span>
+        <span class="brand-text">CEMS<span class="highlight">.Campus</span></span>
+      </a>
+
+      <button class="nav-toggle" aria-label="Toggle navigation menu">
+        ☰
+      </button>
+
+      <ul class="nav-links">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="events.html" class="nav-link active">Explore Events</a></li>
+        <li><a href="my-registrations.html" class="nav-link">My Registrations</a></li>
+        <li><a href="index.html#about" class="nav-link">About</a></li>
+        <li>
+          <a href="admin-login.html" class="btn btn-outline-primary btn-sm">
+            🔐 Admin Portal
+          </a>
+        </li>
+      </ul>
+    </div>
+  </header>
+
+  <!-- Events Header Section -->
+  <section class="events-header-section">
+    <div class="container events-header-content">
+      <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 0.75rem;">Explore Campus Events</h1>
+      <p style="color: #c7d2fe; font-size: 1.05rem;">
+        Find the latest workshops, cultural extravaganzas, hackathons, and athletic competitions happening across campus.
+      </p>
+    </div>
+  </section>
+
+  <!-- Main Content Area -->
+  <main class="main-content">
+    <div class="container">
+
+      <!-- Search & Category Filter Card -->
+      <section class="events-search-card">
+        <div class="search-row">
+          <div class="search-input-group">
+            <span class="search-icon">🔍</span>
+            <input 
+              type="text" 
+              id="events-search-input" 
+              class="form-control" 
+              placeholder="Search events by title, keyword, or venue..." 
+              autocomplete="off"
+            >
+          </div>
+        </div>
+
+        <!-- Category Pills -->
+        <div class="filter-pills-row">
+          <span class="filter-pill-label">Category:</span>
+          <button class="filter-pill active" data-category="ALL">All Categories</button>
+          <button class="filter-pill" data-category="Technical">💻 Technical</button>
+          <button class="filter-pill" data-category="Cultural">🎭 Cultural</button>
+          <button class="filter-pill" data-category="Sports">⚽ Sports</button>
+          <button class="filter-pill" data-category="Workshop">🛠️ Workshop</button>
+        </div>
+      </section>
+
+      <!-- Status Tabs & Sorting Row -->
+      <div class="status-tabs-row">
+        <div class="tabs-group">
+          <button class="tab-btn" data-status="ALL">All Events</button>
+          <button class="tab-btn active" data-status="UPCOMING">Upcoming Events</button>
+          <button class="tab-btn" data-status="PAST">Past Events</button>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <span id="events-count-badge" style="font-size: 0.875rem; font-weight: 600; color: var(--text-muted);">
+            Loading events...
+          </span>
+
+          <div class="sort-group">
+            <label for="events-sort-select">Sort by:</label>
+            <select id="events-sort-select" class="sort-select">
+              <option value="date-asc">Date: Soonest First</option>
+              <option value="date-desc">Date: Latest First</option>
+              <option value="title-asc">Title: A to Z</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Events Grid Container -->
+      <div class="event-grid" id="events-grid" style="margin-bottom: 5rem;">
+        <!-- Dynamic Event Cards rendered by js/events.js -->
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="index.html" class="nav-brand">
+            <span class="brand-badge">🎓</span>
+            <span class="brand-text">CEMS<span class="highlight">.Campus</span></span>
+          </a>
+          <p class="footer-text">
+            Official platform for college event discovery, registrations, and pass generation.
+          </p>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Quick Links</h4>
+          <ul class="footer-links">
+            <li><a href="index.html" class="footer-link">Home</a></li>
+            <li><a href="events.html" class="footer-link">Explore Events</a></li>
+            <li><a href="my-registrations.html" class="footer-link">My Registrations</a></li>
+            <li><a href="admin-login.html" class="footer-link">Admin Portal</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">College Categories</h4>
+          <ul class="footer-links">
+            <li><a href="events.html?category=Technical" class="footer-link">Technical & Coding</a></li>
+            <li><a href="events.html?category=Cultural" class="footer-link">Cultural & Arts</a></li>
+            <li><a href="events.html?category=Sports" class="footer-link">Sports & Athletics</a></li>
+            <li><a href="events.html?category=Workshop" class="footer-link">Workshops & Seminars</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 College Event Management System (CEMS).</div>
+        <div class="viva-callout-pill">🎓 Academic Web Development Project</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/storage.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/events.js"></script>
+</body>
+</html>

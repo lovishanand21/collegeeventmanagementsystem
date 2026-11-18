@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Registrations - CEMS</title>
+  <meta name="description" content="View your registered college event passes, print entry tickets, or manage your bookings.">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/events.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="nav-brand">
+        <span class="brand-badge">🎓</span>
+        <span class="brand-text">CEMS<span class="highlight">.Campus</span></span>
+      </a>
+
+      <button class="nav-toggle" aria-label="Toggle navigation menu">
+        ☰
+      </button>
+
+      <ul class="nav-links">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="events.html" class="nav-link">Explore Events</a></li>
+        <li><a href="my-registrations.html" class="nav-link active">My Registrations</a></li>
+        <li><a href="index.html#about" class="nav-link">About</a></li>
+        <li>
+          <a href="admin-login.html" class="btn btn-outline-primary btn-sm">
+            🔐 Admin Portal
+          </a>
+        </li>
+      </ul>
+    </div>
+  </header>
+
+  <!-- Header Section -->
+  <section class="events-header-section">
+    <div class="container events-header-content">
+      <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 0.75rem;">My Event Passes</h1>
+      <p style="color: #c7d2fe; font-size: 1.05rem;">
+        Retrieve your booked tickets, download printable passes, or cancel registrations anytime.
+      </p>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container" style="padding-top: 3rem; padding-bottom: 5rem;">
+
+      <!-- Lookup Form Card -->
+      <section class="lookup-card">
+        <h2>Enter Your College Email</h2>
+        <p>Type the email address you used during event registration to display your active passes.</p>
+
+        <form id="my-reg-search-form" class="lookup-form">
+          <input 
+            type="email" 
+            id="my-reg-email-input" 
+            class="form-control" 
+            placeholder="e.g. rahul.sharma@college.edu" 
+            required
+          >
+          <button type="submit" class="btn btn-primary" style="flex-shrink: 0;">
+            🔍 View Passes
+          </button>
+        </form>
+
+        <div style="margin-top: 1rem; font-size: 0.825rem; color: var(--text-muted);">
+          <span>💡 Quick Demo Test Emails: </span>
+          <button type="button" onclick="document.getElementById('my-reg-email-input').value='rahul.sharma@college.edu'; document.getElementById('my-reg-search-form').dispatchEvent(new Event('submit'))" class="btn btn-secondary btn-sm" style="padding: 0.2rem 0.5rem; margin-left: 0.25rem;">
+            rahul.sharma@college.edu
+          </button>
+          <button type="button" onclick="document.getElementById('my-reg-email-input').value='priya.patel@college.edu'; document.getElementById('my-reg-search-form').dispatchEvent(new Event('submit'))" class="btn btn-secondary btn-sm" style="padding: 0.2rem 0.5rem; margin-left: 0.25rem;">
+            priya.patel@college.edu
+          </button>
+        </div>
+      </section>
+
+      <!-- Registrations Results Container -->
+      <div id="my-registrations-container">
+        <div class="empty-state">
+          <div class="empty-state-icon">🎟️</div>
+          <h3 class="empty-state-title">Search for Your Passes Above</h3>
+          <p class="empty-state-desc">Enter your college email address in the search box above to load all your confirmed event passes and tickets.</p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Pass Modal Container -->
+  <div id="pass-modal-container"></div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="index.html" class="nav-brand">
+            <span class="brand-badge">🎓</span>
+            <span class="brand-text">CEMS<span class="highlight">.Campus</span></span>
+          </a>
+          <p class="footer-text">
+            Official platform for college event discovery, registrations, and pass generation.
+          </p>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Navigation</h4>
+          <ul class="footer-links">
+            <li><a href="index.html" class="footer-link">Home</a></li>
+            <li><a href="events.html" class="footer-link">Explore Events</a></li>
+            <li><a href="my-registrations.html" class="footer-link">My Registrations</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Viva Verification</h4>
+          <p class="footer-text" style="font-size: 0.85rem;">
+            Data stored locally in your browser LocalStorage (<code style="color: #38bdf8;">cems_registrations</code>).
+          </p>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 College Event Management System (CEMS).</div>
+        <div class="viva-callout-pill">🎓 Academic Web Development Project</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="js/storage.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/registration.js"></script>
+</body>
+</html>

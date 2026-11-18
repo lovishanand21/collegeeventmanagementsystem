@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CEMS - College Event Management System</title>
+  <meta name="description" content="College Event Management System - Discover, explore, and register for upcoming college hackathons, cultural fests, sports tournaments, and workshops.">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/events.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="nav-brand">
+        <span class="brand-badge">🎓</span>
+        <span class="brand-text">CEMS<span class="highlight">.Campus</span></span>
+      </a>
+
+      <button class="nav-toggle" aria-label="Toggle navigation menu">
+        ☰
+      </button>
+
+      <ul class="nav-links">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="events.html" class="nav-link">Explore Events</a></li>
+        <li><a href="my-registrations.html" class="nav-link">My Registrations</a></li>
+        <li><a href="#about" class="nav-link">About</a></li>
+        <li>
+          <a href="admin-login.html" class="btn btn-outline-primary btn-sm">
+            🔐 Admin Portal
+          </a>
+        </li>
+      </ul>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container hero-content">
+        <div class="hero-chip">
+          <span>✨ Official Campus Event Hub</span>
+        </div>
+        <h1 class="hero-title">
+          Ignite Your Campus Life With <span class="gradient-text">Unforgettable Events</span>
+        </h1>
+        <p class="hero-subtitle">
+          Discover hackathons, cultural festivals, sports tournaments, and technical masterclasses happening across our college campus. Seamless registration with instant digital passes.
+        </p>
+
+        <div class="hero-buttons">
+          <a href="events.html" class="btn btn-primary btn-lg">
+            🚀 Explore All Events
+          </a>
+          <a href="my-registrations.html" class="btn btn-secondary btn-lg">
+            🎟️ View My Passes
+          </a>
+        </div>
+
+        <!-- Live Metrics Counter -->
+        <div class="hero-stats">
+          <div class="hero-stat-card">
+            <div class="hero-stat-number" id="stat-events-count">6</div>
+            <div class="hero-stat-label">Total College Events</div>
+          </div>
+          <div class="hero-stat-card">
+            <div class="hero-stat-number" id="stat-registrations-count">3</div>
+            <div class="hero-stat-label">Active Student Signups</div>
+          </div>
+          <div class="hero-stat-card">
+            <div class="hero-stat-number" id="stat-upcoming-count">5</div>
+            <div class="hero-stat-label">Upcoming This Month</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Featured Upcoming Events Section -->
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">Don't Miss Out</span>
+          <h2 class="section-title">Featured Upcoming Events</h2>
+          <p class="section-subtitle">
+            Hand-picked major highlights scheduled for this semester. Grab your ticket before seats run out!
+          </p>
+        </div>
+
+        <!-- Dynamic Event Cards injected by main.js -->
+        <div class="event-grid" id="home-featured-events">
+          <!-- Dynamically populated via LocalStorage -->
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem;">
+          <a href="events.html" class="btn btn-outline-primary btn-lg">
+            View All Events & Categories →
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Why CEMS / Features Section -->
+    <section class="section section-alt" id="features">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">Campus Solution</span>
+          <h2 class="section-title">Why Students Love CEMS</h2>
+          <p class="section-subtitle">
+            Say goodbye to paper forms, long registration queues, and lost passes.
+          </p>
+        </div>
+
+        <div class="features-grid">
+          <div class="feature-box">
+            <div class="feature-icon-wrapper">⚡</div>
+            <h3 class="feature-title">Instant Digital Pass</h3>
+            <p class="feature-desc">
+              Register with your student email and immediately generate your official college event entry pass with a unique verification ID.
+            </p>
+          </div>
+
+          <div class="feature-box">
+            <div class="feature-icon-wrapper">🛡️</div>
+            <h3 class="feature-title">Duplicate Protection</h3>
+            <p class="feature-desc">
+              Smart client-side validation prevents accidental duplicate submissions using your email and event ID, guaranteeing fairness.
+            </p>
+          </div>
+
+          <div class="feature-box">
+            <div class="feature-icon-wrapper">📊</div>
+            <h3 class="feature-title">Live Capacity Tracking</h3>
+            <p class="feature-desc">
+              See real-time remaining seat counters and progress bars. The system automatically closes registrations when capacity is reached.
+            </p>
+          </div>
+
+          <div class="feature-box">
+            <div class="feature-icon-wrapper">👑</div>
+            <h3 class="feature-title">Unified Admin Control</h3>
+            <p class="feature-desc">
+              Department heads and event coordinators can publish, edit, monitor signups, and export student registration lists anytime.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">Quick & Simple</span>
+          <h2 class="section-title">How To Participate in 3 Steps</h2>
+          <p class="section-subtitle">
+            Registering for any college fest or seminar takes less than 30 seconds.
+          </p>
+        </div>
+
+        <div class="steps-grid">
+          <div class="step-card">
+            <div class="step-number">1</div>
+            <h3 class="step-title">Browse & Filter Events</h3>
+            <p class="step-desc">
+              Filter by Technical, Cultural, Sports, or Workshops. Search by event name or keyword to find what excites you.
+            </p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">2</div>
+            <h3 class="step-title">Fill Student Details</h3>
+            <p class="step-desc">
+              Provide your college name, email, roll number, and phone number. Our system validates seat availability immediately.
+            </p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">3</div>
+            <h3 class="step-title">Download Your Pass</h3>
+            <p class="step-desc">
+              Receive your confirmed ticket pass instantly. Look up your registered passes anytime using your college email!
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="section section-alt" id="about">
+      <div class="container">
+        <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+          <span class="section-tag">Academic Project</span>
+          <h2 class="section-title">About College Event Management System</h2>
+          <p class="section-subtitle" style="margin-bottom: 2rem;">
+            CEMS is a pure client-side web application designed to demonstrate robust DOM manipulation, responsive styling, and persistent browser storage using HTML5, CSS3, Vanilla JavaScript, and LocalStorage.
+          </p>
+          <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <span class="badge badge-tech" style="font-size: 0.9rem; padding: 0.5rem 1rem;">HTML5 Semantic Web</span>
+            <span class="badge badge-cultural" style="font-size: 0.9rem; padding: 0.5rem 1rem;">CSS3 Flexbox & Grid</span>
+            <span class="badge badge-sports" style="font-size: 0.9rem; padding: 0.5rem 1rem;">Vanilla JS (ES6+)</span>
+            <span class="badge badge-workshop" style="font-size: 0.9rem; padding: 0.5rem 1rem;">Browser LocalStorage</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="index.html" class="nav-brand">
+            <span class="brand-badge">🎓</span>
+            <span class="brand-text">CEMS<span class="highlight">.Campus</span></span>
+          </a>
+          <p class="footer-text">
+            A comprehensive, lightweight College Event Management System built entirely with standard web technologies. Designed for seamless event discovery and fast registrations.
+          </p>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Quick Navigation</h4>
+          <ul class="footer-links">
+            <li><a href="index.html" class="footer-link">Home</a></li>
+            <li><a href="events.html" class="footer-link">All Events</a></li>
+            <li><a href="my-registrations.html" class="footer-link">My Registrations</a></li>
+            <li><a href="#about" class="footer-link">About Project</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Administrative</h4>
+          <ul class="footer-links">
+            <li><a href="admin-login.html" class="footer-link">Admin Portal Login</a></li>
+            <li><a href="admin-dashboard.html" class="footer-link">Dashboard Overview</a></li>
+            <li><span class="viva-callout-pill">🎓 Viva Ready System</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>
+          &copy; 2026 College Event Management System (CEMS). Built for Academic Project Demonstration.
+        </div>
+        <div style="color: #64748b; font-size: 0.8rem;">
+          Stack: HTML5 • CSS3 • Vanilla JS • LocalStorage
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Core JavaScript Scripts -->
+  <script src="js/storage.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
